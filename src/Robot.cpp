@@ -8,6 +8,8 @@ private:
 	const std::string autoNameDefault = "Default";
 	const std::string autoNameCustom = "My Auto";
 	std::string autoSelected;
+	Encoder *leftDrivetrainEncoder;
+	Encoder *rightDrivetrainEncoder;
 
 	void RobotInit()
 	{
@@ -15,6 +17,8 @@ private:
 		chooser->AddDefault(autoNameDefault, (void*)&autoNameDefault);
 		chooser->AddObject(autoNameCustom, (void*)&autoNameCustom);
 		SmartDashboard::PutData("Auto Modes", chooser);
+		leftDrivetrainEncoder = new Encoder(0,1,false,Encoder::k4X);
+		rightDrivetrainEncoder = new Encoder(2,3,false,Encoder::k4X);
 	}
 
 
