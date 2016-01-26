@@ -8,8 +8,26 @@ private:
 	const std::string autoNameDefault = "Default";
 	const std::string autoNameCustom = "My Auto";
 	std::string autoSelected;
+	Joystick *m_leftStick;
+	Joystick *m_rightStick;
 	Encoder *leftDrivetrainEncoder;
 	Encoder *rightDrivetrainEncoder;
+	CANTalon *m_leftFront;
+	CANTalon *m_rightFront;
+	CANTalon *m_leftBack;
+	CANTalon *m_rightBack;
+	RobotDrive *m_robotDrive;
+	SmartDashboard *smart;
+
+	float ldtEncoderCount;
+	float rdtEncoderCount;
+	float averageEncoderCount;
+	float leftMotorError;
+	float rightMotorError;
+	float leftStickValue;
+	float rightStickValue;
+	float correctedLeftMotorDemand;
+	float correctedRightMotorDemand;
 
 	void RobotInit()
 	{
@@ -19,6 +37,16 @@ private:
 		SmartDashboard::PutData("Auto Modes", chooser);
 		leftDrivetrainEncoder = new Encoder(0,1,false,Encoder::k4X);
 		rightDrivetrainEncoder = new Encoder(2,3,false,Encoder::k4X);
+		//driverstation
+		m_leftStick = new Joystick(0);
+		m_rightStick = new Joystick(1);
+		//drivetrain
+		m_leftFront = new CANTalon(0);
+		m_rightFront = new CANTalon(3);
+		m_leftBack = new CANTalon(1);
+		m_rightBack = new CANTalon(2);
+		m_robotDrive = new RobotDrive (m_leftFront, m_leftBack, m_rightFront, m_rightBack);
+
 	}
 
 
@@ -60,7 +88,16 @@ private:
 
 	void TeleopPeriodic()
 	{
-
+		ldtEncoderCount = leftDrivetrainEncoder->Get();
+		rdtEncoderCount = rightDrivetrainEncoder->Get();
+		averageEncoderCount = (ldtEncoderCount+rdtEncoderCount)/2;
+		leftMotorError = averageEncoderCount/ldtEncoderCount;
+		rightMotorError = averageEncoderCount/rdtEncoderCount;
+		leftStickValue = m_leftStick->GetY();
+		rightStickValue = m_rightStick->GetY();
+		correctedLeftMotorDemand = leftStickValue*leftMotorError;
+		correctedRightMotorDemand = rightStickValue * rightMotorError;
+		m_robotDrive->TankDrive(correctedLeftMotorDemand,correctedRightMotorDemand);
 	}
 
 	void TestPeriodic()
