@@ -71,9 +71,11 @@ private:
 
 		//shooter
 		m_shooterExtend = new Solenoid(8);
+		m_shooterRetract = new Solenoid(9);
 
 		//timers
 		lastShift = new Timer();
+		shooterTimer = new Timer();
 
 	}
 
@@ -160,9 +162,19 @@ private:
 
 	void Shooter()
 	{
-		if(m_gamepad->GetRawButton(1))
+		if(m_gamepad->GetRawButton(1) == 1 && shooterTimer->Get() > 0.3 && shooterValue == 0)
 		{
-			m_shooter->Set
+			m_shooterExtend->Set(true);
+			m_shooterRetract->Set(false);
+			shooterTimer->Reset();
+			shooterValue = 1;
+		}
+		else if(shooterTimer->Get() > 0.3 && shooterValue == 1)
+		{
+			m_shooterExtend->Set(false);
+			m_shooterRetract->Set(true);
+			shooterTimer->Reset();
+			shooterValue = 0;
 		}
 	}
 };
