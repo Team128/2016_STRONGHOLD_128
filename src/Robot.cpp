@@ -3,18 +3,78 @@
 class Robot: public IterativeRobot
 {
 private:
+
+	//default stuff
 	LiveWindow *lw = LiveWindow::GetInstance();
 	SendableChooser *chooser;
 	const std::string autoNameDefault = "Default";
 	const std::string autoNameCustom = "My Auto";
 	std::string autoSelected;
 
+//initialize variables
+	//driver station
+	Joystick *m_leftStick;
+	Joystick *m_rightStick;
+	Joystick *m_gamepad;
+	SmartDashboard *smart;
+
+	//drivetrain
+	CANTalon *m_leftFront;
+	CANTalon *m_rightFront;
+	CANTalon *m_leftBack;
+	CANTalon *m_rightBack;
+	RobotDrive *m_robotDrive;
+
+	//pneumatics
+		//shifters
+	Solenoid *m_shifterUp;
+	Solenoid *m_shifterDown;
+		//shooter
+	Solenoid *m_shooterExtend;
+	Solenoid *m_shooterRetract;
+
+
+	//timers
+	Timer *lastShift;
+	Timer *shooterTimer;
+
+	//ints and floats
+	int shiftValue;
+	int shooterValue;
+	float leftStickValue;
+	float rightStickValue;
+	float joystickSensitivity;
+
+
 	void RobotInit()
 	{
+		//default stuff
 		chooser = new SendableChooser();
 		chooser->AddDefault(autoNameDefault, (void*)&autoNameDefault);
 		chooser->AddObject(autoNameCustom, (void*)&autoNameCustom);
 		SmartDashboard::PutData("Auto Modes", chooser);
+
+		//driverstation
+		m_leftStick = new Joystick(0);
+		m_rightStick = new Joystick(1);
+		m_gamepad = new Joystick(2);
+
+		//drivetrain
+		m_leftFront = new CANTalon(0);
+		m_rightFront = new CANTalon(1);
+		m_leftBack = new CANTalon(2);
+		m_rightBack = new CANTalon(3);
+		m_shifterUp = new Solenoid(6);
+		m_shifterDown = new Solenoid(7);
+		m_robotDrive = new RobotDrive (m_leftFront, m_leftBack, m_rightFront, m_rightBack);
+		m_robotDrive->SetSafetyEnabled(false);
+
+		//shooter
+		m_shooterExtend = new Solenoid(8);
+
+		//timers
+		lastShift = new Timer();
+
 	}
 
 
@@ -51,17 +111,59 @@ private:
 
 	void TeleopInit()
 	{
+		shiftValue = 0;
+		lastShift->Start();
 
 	}
 
 	void TeleopPeriodic()
 	{
+		TeleopDrive();
+		Shift();
+		Shooter();
 
 	}
 
 	void TestPeriodic()
 	{
 		lw->Run();
+		TeleopDrive();
+		Shift();
+		Shooter();
+	}
+
+	void TeleopDrive()
+	{
+		leftStickValue = m_leftStick->GetY();
+		rightStickValue = m_rightStick->GetY();
+		m_robotDrive->TankDrive(leftStickValue, rightStickValue);
+
+	}
+
+	void Shift()
+	{
+		if(m_leftStick->GetTrigger()== 1 && m_rightStick->GetTrigger() == 1 && shiftValue == 1 && lastShift->Get() > 0.3)
+		{
+			m_shifterUp->Set(true);
+			m_shifterDown->Set(false);
+			shiftValue = 1;
+			lastShift->Reset();
+		}
+		else if(m_leftStick->GetTrigger() == 1 && m_rightStick->GetTrigger() == 1 && shiftValue == 0 && lastShift->Get() > 0.3)
+		{
+			m_shifterUp->Set(false);
+			m_shifterDown->Set(true);
+			shiftValue = 0;
+			lastShift->Reset();
+		}
+	}
+
+	void Shooter()
+	{
+		if(m_gamepad->GetRawButton(1))
+		{
+			m_shooter->Set
+		}
 	}
 };
 
